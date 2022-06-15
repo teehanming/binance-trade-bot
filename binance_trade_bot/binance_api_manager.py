@@ -263,6 +263,9 @@ class BinanceAPIManager:
         order_quantity = self._buy_quantity(origin_symbol, target_symbol, target_balance, from_coin_price)
         order_quantity_s = "{:0.0{}f}".format(order_quantity, pair_info["baseAssetPrecision"])
 
+        if order_quantity * from_coin_price < self.get_min_notional(origin_symbol, target_symbol):
+            return None
+
         self.logger.info(f"BUY QTY {order_quantity}")
 
         # Try to buy until successful
@@ -352,6 +355,7 @@ class BinanceAPIManager:
             new_balance = self.get_currency_balance(origin_symbol, True)
 
         self.logger.info(f"Sold {origin_symbol}")
+        self.db.set_current_coin(origin_coin)
 
         trade_log.set_complete(order.cumulative_quote_qty)
 
